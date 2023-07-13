@@ -1913,6 +1913,7 @@ struct bgp_nlri {
 #ifdef ENABLE_BGP_VNC_ATTR
 #define BGP_ATTR_VNC                           255
 #endif
+#define BGP_ATTR_KERNEL_BYPASS 					27
 
 /* BGP update origin.  */
 #define BGP_ORIGIN_IGP                           0

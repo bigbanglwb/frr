@@ -53,8 +53,16 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     && wget -qO- https://deb.frrouting.org/frr/keys.asc | apt-key add - \
     && echo "deb https://deb.frrouting.org/frr bionic frr-stable" > /etc/apt/sources.list.d/frr.list \
     && apt-get update \
-    && apt-get install -y libyang-dev \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install  -y   libyang2-dev         protobuf-c-compiler \
+        libprotobuf-c-dev 
+
+
+RUN apt-get install -y \  
+        python3.8-dev \
+        python3-pip\
+&& update-alternatives --install /usr/bin/python python /usr/bin/python3.8 1 \
+&& pip install --upgrade pytest-dependency
+
 
 RUN groupadd -r -g 92 frr \
     && groupadd -r -g 85 frrvty \
@@ -83,5 +91,16 @@ ENV PATH "$PATH:/opt/topotests"
 
 RUN echo "cat /opt/topotests/motd.txt" >> /root/.profile && \
       echo "export PS1='(topotests) $PS1'" >> /root/.profile
+
+# Install libnl-3.7.0
+RUN wget https://github.com/thom311/libnl/releases/download/libnl3_7_0/libnl-3.7.0.tar.gz  -q \
+&& tar -xf libnl-3.7.0.tar.gz \
+&& cd libnl-3.7.0 \
+&& ./configure --prefix=/usr     \
+            --sysconfdir=/etc \
+            --disable-static  \
+&& make -j 8 \
+&& make install  > /dev/null 
+
 
 ENTRYPOINT [ "bash", "/opt/topotests/entrypoint.sh" ]

@@ -1,5 +1,6 @@
 ### autoconf/automake root stuff
-
+/build.sh
+/.clangd
 /compile
 /config.log
 /config.h

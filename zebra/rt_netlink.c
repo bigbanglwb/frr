@@ -2969,13 +2969,29 @@ netlink_put_route_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx)
 	int cmd;
 	const struct prefix *p = dplane_ctx_get_dest(ctx);
 
+	uint32_t flag, old_flag;
+
+	flag = dplane_ctx_get_flag(ctx);
+	old_flag = dplane_ctx_get_old_flag(ctx);
+	if (IS_ZEBRA_DEBUG_KERNEL)
+		zlog_debug("netlink_put_route_update_msg, op= %d, dplane flag = 0x%x,dplane old flag = 0x%x",
+			dplane_ctx_get_op(ctx) ,
+			flag,
+			old_flag
+		);
+
+
+
 	if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_DELETE) {
 		cmd = RTM_DELROUTE;
 	} else if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_INSTALL) {
 		cmd = RTM_NEWROUTE;
 	} else if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_UPDATE) {
 
-		if (p->family == AF_INET || v6_rr_semantics) {
+		if ((p->family == AF_INET || v6_rr_semantics) && 
+			(!RSYSTEM_ROUTE(dplane_ctx_get_type(ctx))) &&
+			(!CHECK_FLAG(flag, DPLANE_RINFO_FLAG_NO_KERNEL))
+			) {
 			/* Single 'replace' operation */
 
 			/*
@@ -3004,17 +3020,19 @@ netlink_put_route_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx)
 			 * of the route delete.  If that happens yeah we're
 			 * screwed.
 			 */
-			if (!RSYSTEM_ROUTE(dplane_ctx_get_old_type(ctx)))
+			if (!RSYSTEM_ROUTE(dplane_ctx_get_old_type(ctx)) && !CHECK_FLAG(old_flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 				netlink_batch_add_msg(
 					bth, ctx, netlink_delroute_msg_encoder,
 					true);
+			
+
 		}
 
 		cmd = RTM_NEWROUTE;
 	} else
 		return FRR_NETLINK_ERROR;
 
-	if (RSYSTEM_ROUTE(dplane_ctx_get_type(ctx)))
+	if (RSYSTEM_ROUTE(dplane_ctx_get_type(ctx)) || CHECK_FLAG(flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 		return FRR_NETLINK_SUCCESS;
 
 	return netlink_batch_add_msg(bth, ctx,

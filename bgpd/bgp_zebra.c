@@ -1578,6 +1578,13 @@ void bgp_zebra_announce(struct bgp_dest *dest, const struct prefix *p,
 
 			SET_FLAG(api_nh->flags, ZAPI_NEXTHOP_FLAG_SEG6);
 		}
+		
+		if ( CHECK_FLAG(mpinfo->attr->flag,ATTR_FLAG_BIT(BGP_ATTR_KERNEL_BYPASS)) )
+		{
+			if (BGP_DEBUG(zebra, ZEBRA))
+				zlog_debug("SET ZAPI_NEXTHOP_KERNEL_BYPASS, peer:%d",mpinfo->peer->as);
+			SET_FLAG(api_nh->flags,ZAPI_NEXTHOP_KERNEL_BYPASS);
+		}
 
 		valid_nh_count++;
 	}

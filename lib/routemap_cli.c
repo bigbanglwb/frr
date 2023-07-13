@@ -1349,6 +1349,9 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 				dnode,
 				"./rmap-set-action/frr-bgp-route-map:l3vpn-nexthop-encapsulation"));
 	}
+	else if (IS_SET_KERNEL_BYPASS(action)) {
+			vty_out(vty, " set kernel-bypass\n");
+	}
 }
 
 DEFPY_YANG(

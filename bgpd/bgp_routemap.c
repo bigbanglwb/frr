@@ -2106,6 +2106,41 @@ static const struct route_map_rule_cmd
 		route_set_l3vpn_nexthop_encapsulation_compile,
 		route_set_l3vpn_nexthop_encapsulation_free};
 
+static enum route_map_cmd_result_t
+route_set_kernel_bypass(void *rule, const struct prefix *prefix,
+				      void *object)
+{
+
+	struct bgp_path_info *path ;	
+	path = object;
+
+	if (unlikely(CHECK_FLAG(rmap_debug,
+						DEBUG_ROUTEMAP_DETAIL)))
+		zlog_debug("route_set_kernel_bypass, dest: %s, AS: %d",
+			inet_ntoa(path->net->p.u.prefix4) ,
+			path->peer->as);
+			
+	SET_FLAG(path->attr->flag,ATTR_FLAG_BIT(BGP_ATTR_KERNEL_BYPASS));
+	return RMAP_OKAY;
+}
+static void *route_set_kernel_bypass_compile(const char *arg)
+{
+	return (void*) 1;
+}
+
+static void route_set_kernel_bypass_free(void *rule)
+{
+	return ;
+}
+/* Route map commands for l3vpn next-hop encapsulation set. */
+static const struct route_map_rule_cmd 
+	route_set_kernel_bypass_cmd = {
+		"kernel-bypass",
+		route_set_kernel_bypass,
+		route_set_kernel_bypass_compile,
+		route_set_kernel_bypass_free
+};
+
 /* `set local-preference LOCAL_PREF' */
 
 /* Set local preference. */
@@ -7130,6 +7165,41 @@ DEFUN_YANG (no_set_ipv6_nexthop_prefer_global,
 	return nb_cli_apply_changes(vty, NULL);
 }
 
+DEFUN_YANG (set_kernel_bypass,
+	    set_kernel_bypass_cmd,
+	    "set kernel-bypass",
+	    SET_STR
+	    "Bypass kernel\n")
+{
+	zlog_debug("set route map rule : kernel-bypass ");
+	const char *xpath =
+		"./set-action[action='frr-bgp-route-map:kernel-bypass']";
+	char xpath_value[XPATH_MAXLEN];
+
+	nb_cli_enqueue_change(vty, xpath, NB_OP_CREATE, NULL);
+	snprintf(xpath_value, sizeof(xpath_value),
+		 "%s/rmap-set-action/frr-bgp-route-map:kernel-bypass", xpath);
+	nb_cli_enqueue_change(vty, xpath_value, NB_OP_MODIFY,NULL);
+
+	return nb_cli_apply_changes(vty, NULL);
+}
+
+
+DEFUN_YANG (no_set_kernel_bypass,
+	    no_set_kernel_bypass_cmd,
+	    "no set kernel-bypass",
+	    NO_STR
+	    SET_STR
+	    "Bypass kernel\n")
+{
+	const char *xpath =
+		"./set-action[action='frr-bgp-route-map:kernel-bypass']";
+
+	nb_cli_enqueue_change(vty, xpath, NB_OP_DESTROY, NULL);
+	return nb_cli_apply_changes(vty, NULL);
+}
+
+
 DEFUN_YANG (set_ipv6_nexthop_global,
 	    set_ipv6_nexthop_global_cmd,
 	    "set ipv6 next-hop global X:X::X:X",
@@ -7558,6 +7628,7 @@ void bgp_route_map_init(void)
 	route_map_install_set(&route_set_tag_cmd);
 	route_map_install_set(&route_set_label_index_cmd);
 	route_map_install_set(&route_set_l3vpn_nexthop_encapsulation_cmd);
+	route_map_install_set(&route_set_kernel_bypass_cmd);
 
 	install_element(RMAP_NODE, &match_peer_cmd);
 	install_element(RMAP_NODE, &match_peer_local_cmd);
@@ -7703,6 +7774,8 @@ void bgp_route_map_init(void)
 	install_element(RMAP_NODE, &match_rpki_extcommunity_cmd);
 	install_element(RMAP_NODE, &match_source_protocol_cmd);
 	install_element(RMAP_NODE, &no_match_source_protocol_cmd);
+	install_element(RMAP_NODE, &set_kernel_bypass_cmd);
+	install_element(RMAP_NODE, &no_set_kernel_bypass_cmd);
 #ifdef HAVE_SCRIPTING
 	install_element(RMAP_NODE, &match_script_cmd);
 #endif

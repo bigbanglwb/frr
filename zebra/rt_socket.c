@@ -303,7 +303,7 @@ enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx)
 {
 	enum zebra_dplane_result res = ZEBRA_DPLANE_REQUEST_SUCCESS;
 	uint32_t type, old_type;
-
+	uint32_t flag, old_flag;
 	if (dplane_ctx_get_src(ctx) != NULL) {
 		zlog_err("route add: IPv6 sourcedest routes unsupported!");
 		return ZEBRA_DPLANE_REQUEST_FAILURE;
@@ -312,15 +312,19 @@ enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx)
 	type = dplane_ctx_get_type(ctx);
 	old_type = dplane_ctx_get_old_type(ctx);
 
-	frr_with_privs(&zserv_privs) {
+	flag = dplane_ctx_get_flag(ctx);
+	old_flag = dplane_ctx_get_old_flag(ctx);
+	if (IS_ZEBRA_DEBUG_KERNEL)
+		zlog_debug("kernel_route_update,flag = %d, old flag = %d",flag , old_flag);
 
+	frr_with_privs(&zserv_privs) {
 		if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_DELETE) {
-			if (!RSYSTEM_ROUTE(type))
+			if (!RSYSTEM_ROUTE(type) && !CHECK_FLAG(flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 				kernel_rtm(RTM_DELETE, dplane_ctx_get_dest(ctx),
 					   dplane_ctx_get_ng(ctx),
 					   dplane_ctx_get_metric(ctx));
 		} else if (dplane_ctx_get_op(ctx) == DPLANE_OP_ROUTE_INSTALL) {
-			if (!RSYSTEM_ROUTE(type))
+			if (!RSYSTEM_ROUTE(type) && !CHECK_FLAG(flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 				kernel_rtm(RTM_ADD, dplane_ctx_get_dest(ctx),
 					   dplane_ctx_get_ng(ctx),
 					   dplane_ctx_get_metric(ctx));
@@ -328,12 +332,12 @@ enum zebra_dplane_result kernel_route_update(struct zebra_dplane_ctx *ctx)
 			/* Must do delete and add separately -
 			 * no update available
 			 */
-			if (!RSYSTEM_ROUTE(old_type))
+			if (!RSYSTEM_ROUTE(old_type) && !CHECK_FLAG(old_flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 				kernel_rtm(RTM_DELETE, dplane_ctx_get_dest(ctx),
 					   dplane_ctx_get_old_ng(ctx),
 					   dplane_ctx_get_old_metric(ctx));
 
-			if (!RSYSTEM_ROUTE(type))
+			if (!RSYSTEM_ROUTE(type) && !CHECK_FLAG(flag, DPLANE_RINFO_FLAG_NO_KERNEL))
 				kernel_rtm(RTM_ADD, dplane_ctx_get_dest(ctx),
 					   dplane_ctx_get_ng(ctx),
 					   dplane_ctx_get_metric(ctx));

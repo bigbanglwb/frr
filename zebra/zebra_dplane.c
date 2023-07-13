@@ -107,6 +107,9 @@ struct dplane_route_info {
 	int zd_type;
 	int zd_old_type;
 
+	int zd_flag;
+	int zd_old_flag;
+
 	route_tag_t zd_tag;
 	route_tag_t zd_old_tag;
 	uint32_t zd_metric;
@@ -1221,6 +1224,20 @@ const char *dplane_res2str(enum zebra_dplane_result res)
 	}
 
 	return ret;
+}
+
+int dplane_ctx_get_flag(const struct zebra_dplane_ctx *ctx)
+{
+	DPLANE_CTX_VALID(ctx);
+
+	return ctx->u.rinfo.zd_flag;
+}
+
+int dplane_ctx_get_old_flag(const struct zebra_dplane_ctx *ctx)
+{
+	DPLANE_CTX_VALID(ctx);
+
+	return ctx->u.rinfo.zd_old_flag;
 }
 
 void dplane_ctx_set_dest(struct zebra_dplane_ctx *ctx,
@@ -4147,19 +4164,35 @@ dplane_route_update_internal(struct route_node *rn,
 	enum zebra_dplane_result result = ZEBRA_DPLANE_REQUEST_FAILURE;
 	int ret = EINVAL;
 	struct zebra_dplane_ctx *ctx = NULL;
-
+	struct nexthop *nexthop, *old_nexthop;
 	/* Obtain context block */
 	ctx = dplane_ctx_alloc();
+	if (IS_ZEBRA_DEBUG_DPLANE_DETAIL) {
+			zlog_debug("%s: route entry flag:0x%x", __func__,re->flags);
+	if(old_re)
+		zlog_debug("%s: old route entry flag:0x%x", __func__,old_re->flags);
+	}
 
 	/* Init context with info from zebra data structs */
 	ret = dplane_ctx_route_init(ctx, op, rn, re);
 	if (ret == AOK) {
+		nexthop = re->nhe->nhg.nexthop;
+		if (nexthop && CHECK_FLAG(re->flags, ZEBRA_FLAG_KERNEL_BYPASS))
+		{
+			SET_FLAG(ctx->u.rinfo.zd_flag, DPLANE_RINFO_FLAG_NO_KERNEL);
+		}
+			
 		/* Capture some extra info for update case
 		 * where there's a different 'old' route.
 		 */
 		if ((op == DPLANE_OP_ROUTE_UPDATE) &&
 		    old_re && (old_re != re)) {
-
+			old_nexthop = re->nhe->nhg.nexthop;
+			if (old_nexthop && CHECK_FLAG(old_re->flags, ZEBRA_FLAG_KERNEL_BYPASS))
+			{
+				SET_FLAG(ctx->u.rinfo.zd_old_flag, DPLANE_RINFO_FLAG_NO_KERNEL);
+			}
+				
 			old_re->dplane_sequence =
 				zebra_router_get_next_sequence();
 			ctx->zd_old_seq = old_re->dplane_sequence;
@@ -4202,7 +4235,7 @@ dplane_route_update_internal(struct route_node *rn,
 		    && (dplane_ctx_get_nhe_id(ctx)
 			== dplane_ctx_get_old_nhe_id(ctx))
 		    && (dplane_ctx_get_nhe_id(ctx) >= ZEBRA_NHG_PROTO_LOWER)) {
-			struct nexthop *nexthop;
+			// struct nexthop *nexthop;
 
 			if (IS_ZEBRA_DEBUG_DPLANE)
 				zlog_debug(
@@ -6782,6 +6815,7 @@ static int kernel_dplane_process_func(struct zebra_dplane_provider *prov)
 		if (IS_ZEBRA_DEBUG_DPLANE_DETAIL)
 			kernel_dplane_log_detail(ctx);
 
+
 		if ((dplane_ctx_get_op(ctx) == DPLANE_OP_IPTABLE_ADD
 		     || dplane_ctx_get_op(ctx) == DPLANE_OP_IPTABLE_DELETE))
 			kernel_dplane_process_iptable(prov, ctx);
@@ -6795,6 +6829,7 @@ static int kernel_dplane_process_func(struct zebra_dplane_provider *prov)
 		else
 			dplane_ctx_list_add_tail(&work_list, ctx);
 	}
+	
 
 	kernel_update_multi(&work_list);
 

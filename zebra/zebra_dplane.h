@@ -194,10 +194,12 @@ enum dplane_op_e {
 	DPLANE_OP_TC_FILTER_ADD,
 	DPLANE_OP_TC_FILTER_DELETE,
 	DPLANE_OP_TC_FILTER_UPDATE,
-
+	
 	/* Startup Control */
 	DPLANE_OP_STARTUP_STAGE,
 };
+
+#define DPLANE_RINFO_FLAG_NO_KERNEL  0x01
 
 /*
  * The vxlan/evpn neighbor management code needs some values to use

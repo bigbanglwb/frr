@@ -1217,6 +1217,15 @@ static void rib_process(struct route_node *rn)
 	old_fib = dest->selected_fib;
 
 	RNODE_FOREACH_RE_SAFE (rn, re, next) {
+		for(struct nexthop *nh = re->nhe->nhg.nexthop;nh;nh= nh->next)
+		{
+			
+			if(CHECK_FLAG(nh->flags, NEXTHOP_FLAG_KERNEL_BYPASS))
+			{
+				SET_FLAG(re->flags, ZEBRA_FLAG_KERNEL_BYPASS);
+				break;
+			}
+		}
 		if (IS_ZEBRA_DEBUG_RIB_DETAILED) {
 			char flags_buf[128];
 			char status_buf[128];
@@ -1302,7 +1311,7 @@ static void rib_process(struct route_node *rn)
 			if (!nexthop_group_active_nexthop_num(&re->nhe->nhg))
 				continue;
 		}
-
+		
 		/* Infinite distance. */
 		if (re->distance == DISTANCE_INFINITY &&
 		    re->type != ZEBRA_ROUTE_KERNEL) {

@@ -453,6 +453,7 @@ struct zapi_nexthop {
 #define ZAPI_NEXTHOP_FLAG_SEG6		0x10
 #define ZAPI_NEXTHOP_FLAG_SEG6LOCAL	0x20
 #define ZAPI_NEXTHOP_FLAG_EVPN		0x40
+#define ZAPI_NEXTHOP_KERNEL_BYPASS  0x80
 
 /*
  * ZAPI Nexthop Group. For use with protocol creation of nexthop groups.
@@ -547,6 +548,7 @@ struct zapi_route {
  */
 #define ZEBRA_FLAG_OUTOFSYNC          0x400
 
+#define ZEBRA_FLAG_KERNEL_BYPASS          0x800
 	/* The older XXX_MESSAGE flags live here */
 	uint32_t message;
 
