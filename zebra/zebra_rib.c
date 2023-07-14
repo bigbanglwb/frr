@@ -1217,15 +1217,7 @@ static void rib_process(struct route_node *rn)
 	old_fib = dest->selected_fib;
 
 	RNODE_FOREACH_RE_SAFE (rn, re, next) {
-		for(struct nexthop *nh = re->nhe->nhg.nexthop;nh;nh= nh->next)
-		{
-			
-			if(CHECK_FLAG(nh->flags, NEXTHOP_FLAG_KERNEL_BYPASS))
-			{
-				SET_FLAG(re->flags, ZEBRA_FLAG_KERNEL_BYPASS);
-				break;
-			}
-		}
+
 		if (IS_ZEBRA_DEBUG_RIB_DETAILED) {
 			char flags_buf[128];
 			char status_buf[128];
@@ -1312,6 +1304,19 @@ static void rib_process(struct route_node *rn)
 				continue;
 		}
 		
+		for(struct nexthop *nh = re->nhe->nhg.nexthop;nh;nh= nh->next)
+		{	
+			if(IS_ZEBRA_DEBUG_KERNEL)
+					zlog_debug("%s:check kernel-bypass flag on nh,nh flags:0x%x",__func__,nh->flags);
+			if(CHECK_FLAG(nh->flags, NEXTHOP_FLAG_KERNEL_BYPASS))
+			{			
+				SET_FLAG(re->flags, ZEBRA_FLAG_KERNEL_BYPASS);
+				if(IS_ZEBRA_DEBUG_KERNEL)
+					zlog_debug("%s:set kernel-bypass flag on route entry,re flags:0x%x",__func__,re->flags);
+				break;
+			}
+		}
+
 		/* Infinite distance. */
 		if (re->distance == DISTANCE_INFINITY &&
 		    re->type != ZEBRA_ROUTE_KERNEL) {
@@ -1335,7 +1340,7 @@ static void rib_process(struct route_node *rn)
 		if (best != re)
 			UNSET_FLAG(re->status, ROUTE_ENTRY_CHANGED);
 	} /* RNODE_FOREACH_RE */
-
+	
 	/* If no FIB override route, use the selected route also for FIB */
 	if (new_fib == NULL)
 		new_fib = new_selected;
@@ -1417,7 +1422,7 @@ static void rib_process(struct route_node *rn)
 			rib_unlink(rn, re);
 		}
 	}
-
+	
 	/*
 	 * Check if the dest can be deleted now.
 	 */

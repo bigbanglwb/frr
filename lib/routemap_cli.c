@@ -1349,9 +1349,17 @@ void route_map_action_show(struct vty *vty, const struct lyd_node *dnode,
 				dnode,
 				"./rmap-set-action/frr-bgp-route-map:l3vpn-nexthop-encapsulation"));
 	}
-	else if (IS_SET_KERNEL_BYPASS(action)) {
-			vty_out(vty, " set kernel-bypass\n");
-	}
+	else if (IS_SET_BGP_KERNEL_BYPASS(action) || 
+				IS_SET_ZEBRA_KERNEL_BYPASS(action)) {
+		vty_out(vty, " set route kernel-bypass %s\n",
+			yang_dnode_get_string(
+				dnode,
+				IS_SET_ZEBRA_KERNEL_BYPASS(action)
+					? "./rmap-set-action/frr-zebra-route-map:kernel-bypass"
+					: "./rmap-set-action/frr-bgp-route-map:kernel-bypass"));
+	} 
+
+		
 }
 
 DEFPY_YANG(

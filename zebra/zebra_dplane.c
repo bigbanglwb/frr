@@ -4167,10 +4167,11 @@ dplane_route_update_internal(struct route_node *rn,
 	struct nexthop *nexthop, *old_nexthop;
 	/* Obtain context block */
 	ctx = dplane_ctx_alloc();
-	if (IS_ZEBRA_DEBUG_DPLANE_DETAIL) {
-			zlog_debug("%s: route entry flag:0x%x", __func__,re->flags);
-	if(old_re)
-		zlog_debug("%s: old route entry flag:0x%x", __func__,old_re->flags);
+	if (IS_ZEBRA_DEBUG_KERNEL) {
+		if(old_re)
+			zlog_debug("%s: check route entry flag:0x%x, old flag:0x%x", __func__,re->flags,old_re->flags);
+		else
+			zlog_debug("%s: check route entry flag:0x%x, old flag: no old route", __func__,re->flags);
 	}
 
 	/* Init context with info from zebra data structs */

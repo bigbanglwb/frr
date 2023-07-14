@@ -1698,8 +1698,8 @@ static struct nexthop *nexthop_from_zapi(const struct zapi_nexthop *api_nh,
 	if (CHECK_FLAG(api_nh->flags,ZAPI_NEXTHOP_KERNEL_BYPASS))
 	{
 		SET_FLAG(nexthop->flags,NEXTHOP_FLAG_KERNEL_BYPASS);
-		if (IS_ZEBRA_DEBUG_RECV || IS_ZEBRA_DEBUG_EVENT)
-			zlog_debug("%s: next hop has set kernel bypass,flag:0x%x", __func__,nexthop->flags);
+		if (IS_ZEBRA_DEBUG_KERNEL)
+			zlog_debug("%s: set kernel-bypass flag on nexthop,flag:0x%x", __func__,nexthop->flags);
 	}
 
 done:

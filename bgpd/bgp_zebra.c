@@ -1582,7 +1582,9 @@ void bgp_zebra_announce(struct bgp_dest *dest, const struct prefix *p,
 		if ( CHECK_FLAG(mpinfo->attr->flag,ATTR_FLAG_BIT(BGP_ATTR_KERNEL_BYPASS)) )
 		{
 			if (BGP_DEBUG(zebra, ZEBRA))
-				zlog_debug("SET ZAPI_NEXTHOP_KERNEL_BYPASS, peer:%d",mpinfo->peer->as);
+				zlog_debug("%s:set kernel-bypass flag on api_nh, peer:%d",
+					__func__,
+					mpinfo->peer->as);
 			SET_FLAG(api_nh->flags,ZAPI_NEXTHOP_KERNEL_BYPASS);
 		}
 

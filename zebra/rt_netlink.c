@@ -2974,7 +2974,8 @@ netlink_put_route_update_msg(struct nl_batch *bth, struct zebra_dplane_ctx *ctx)
 	flag = dplane_ctx_get_flag(ctx);
 	old_flag = dplane_ctx_get_old_flag(ctx);
 	if (IS_ZEBRA_DEBUG_KERNEL)
-		zlog_debug("netlink_put_route_update_msg, op= %d, dplane flag = 0x%x,dplane old flag = 0x%x",
+		zlog_debug("%s:op= %d,ctx flag = 0x%x, ctx old flag = 0x%x",
+			__func__,
 			dplane_ctx_get_op(ctx) ,
 			flag,
 			old_flag

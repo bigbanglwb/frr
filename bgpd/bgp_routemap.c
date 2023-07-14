@@ -2114,9 +2114,8 @@ route_set_kernel_bypass(void *rule, const struct prefix *prefix,
 	struct bgp_path_info *path ;	
 	path = object;
 
-	if (unlikely(CHECK_FLAG(rmap_debug,
-						DEBUG_ROUTEMAP_DETAIL)))
-		zlog_debug("route_set_kernel_bypass, dest: %s, AS: %d",
+	if (unlikely(BGP_DEBUG(zebra, ZEBRA)))
+		zlog_debug("route map:set kernel-bypass flag on bgp path info, dest: %s, AS: %d",
 			inet_ntoa(path->net->p.u.prefix4) ,
 			path->peer->as);
 			
@@ -2132,7 +2131,7 @@ static void route_set_kernel_bypass_free(void *rule)
 {
 	return ;
 }
-/* Route map commands for l3vpn next-hop encapsulation set. */
+
 static const struct route_map_rule_cmd 
 	route_set_kernel_bypass_cmd = {
 		"kernel-bypass",
@@ -7169,9 +7168,9 @@ DEFUN_YANG (set_kernel_bypass,
 	    set_kernel_bypass_cmd,
 	    "set kernel-bypass",
 	    SET_STR
-	    "Bypass kernel\n")
+	    "kernel bypass\n")
 {
-	zlog_debug("set route map rule : kernel-bypass ");
+	zlog_debug("bgp set route map rule : kernel-bypass ");
 	const char *xpath =
 		"./set-action[action='frr-bgp-route-map:kernel-bypass']";
 	char xpath_value[XPATH_MAXLEN];
@@ -7189,8 +7188,8 @@ DEFUN_YANG (no_set_kernel_bypass,
 	    no_set_kernel_bypass_cmd,
 	    "no set kernel-bypass",
 	    NO_STR
-	    SET_STR
-	    "Bypass kernel\n")
+		SET_STR
+	    "bypass kernel\n")
 {
 	const char *xpath =
 		"./set-action[action='frr-bgp-route-map:kernel-bypass']";

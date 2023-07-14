@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $(uname -a | grep -ci Ubuntu) -ge 1 ]; then
+    #for topotests under ubuntu host
+    sudo modprobe mpls-router mpls-iptunnel
+    sudo /etc/init.d/openvswitch-switch start
+    sudo /usr/lib/frr/fpmsyncd_simulator -d -f /tmp > /tmp/fpmsyncd.log 2>&1 &
+    sudo /usr/lib/frr/frrinit.sh start
+fi
+# while true ; do sleep 365d ; done
+/bin/bash
