@@ -27,7 +27,7 @@ import time
 import logging
 from collections.abc import Mapping
 from copy import deepcopy
-
+import pdb
 import lib.topolog as topolog
 from lib.micronet_compat import Node
 from lib.topolog import logger
@@ -1753,6 +1753,7 @@ class Router(Node):
                 logger.info("BFD Test, but no bfdd compiled or installed")
                 return "BFD Test, but no bfdd compiled or installed"
 
+        
         status = self.startRouterDaemons(tgen=tgen)
 
         if g_pytest_config.name_in_option_list(self.name, "--vtysh"):
@@ -1775,6 +1776,25 @@ class Router(Node):
         with open(filename) as file:
             log = file.read()
         return log
+
+
+    def startFpmsyncd(self):
+        "Starts FRR Fpmsyncd for this router."
+        dir_path = f"{self.logdir}/{self.name}"
+        log_path = f"{dir_path}/fpmsyncd.log" 
+        self.cmd(f"mkdir -p {dir_path}")
+        run_cmd = f"/usr/lib/frr/fpmsyncd -d -f {dir_path} > {log_path}  2>&1 &"
+        try:
+            self.cmd_raises(run_cmd, warn=False)
+        except subprocess.CalledProcessError as error:
+            self.logger.error(
+                '%s: Failed to launch "%s" daemon (%d) using: %s%s%s:',
+                self,
+                "Fpmsyncd",
+                error.returncode,
+                error.cmd
+            )
+        
 
     def startRouterDaemons(self, daemons=None, tgen=None):
         "Starts FRR daemons for this router."
@@ -1858,7 +1878,6 @@ class Router(Node):
             # If this is a new system bring-up remove the pid/vty files, otherwise
             # do not since apparently presence of the pidfile impacts BGP GR
             self.cmd_status("rm -f {0}.pid {0}.vty".format(runbase))
-
             rediropt = " > {0}.out 2> {0}.err".format(daemon)
             if daemon == "snmpd":
                 binary = "/usr/sbin/snmpd"
@@ -1977,6 +1996,8 @@ class Router(Node):
                 else:
                     logger.debug("%s: %s %s started", self, self.routertype, daemon)
 
+        
+
         # Start mgmtd first
         if "mgmtd" in daemons_list:
             start_daemon("mgmtd")
@@ -1985,7 +2006,8 @@ class Router(Node):
 
         # Start Zebra after mgmtd
         if "zebra" in daemons_list:
-            start_daemon("zebra", "-s 90000000")
+            logger.debug("start zebra now")
+            start_daemon("zebra", "-s 90000000 -M fpm")
             while "zebra" in daemons_list:
                 daemons_list.remove("zebra")
 

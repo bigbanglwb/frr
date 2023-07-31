@@ -38,7 +38,6 @@ import shlex
 import subprocess
 import sys
 from collections import OrderedDict
-
 import lib.topolog as topolog
 from lib.micronet import Commander
 from lib.micronet_compat import Mininet
@@ -913,6 +912,13 @@ class TopoRouter(TopoGear):
         self.logger.debug("stopping (no assert)")
         return self.net.stopRouter(False)
 
+    def startFpmsyncd(self):
+        """
+        Start fpmsyncd
+        """
+        self.logger.debug("starting fpmsyncd")
+        return self.net.startFpmsyncd()
+    
     def startDaemons(self, daemons):
         """
         Start Daemons: to start specific daemon(user defined daemon only)

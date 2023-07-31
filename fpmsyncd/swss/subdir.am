@@ -1,0 +1,21 @@
+lib_LTLIBRARIES += swss/libswsscommon.la
+
+swss_libswsscommon_la_SOURCES = \
+    swss/select.cpp                \
+    swss/selectableevent.cpp       \
+    swss/selectabletimer.cpp       \
+    swss/ipaddress.cpp             \
+    swss/ipprefix.cpp              \
+    swss/ipaddresses.cpp           \
+    swss/macaddress.cpp            \
+    swss/netdispatcher.cpp         \
+    swss/netlink.cpp               \
+    swss/tokenize.cpp              
+
+swss_libswsscommon_la_CXXFLAGS = -g -I/usr/include/libnl3 
+swss_libswsscommon_la_LIBADD = -lpthread -lnl-3 -lnl-route-3  -lyang
+
+
+
+
+

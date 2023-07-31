@@ -1,0 +1,65 @@
+# SUBDIRS = fpmsyncd/swss
+
+if FPMSYNCD
+sbin_PROGRAMS += fpmsyncd/fpmsyncd
+endif
+AM_CPPFLAGS += -I$(top_srcdir)/fpmsyncd/swss
+fpmsyncd_fpmsyncd_CXXFLAGS = -g -I/usr/include/libnl3 
+fpmsyncd_fpmsyncd_LDADD = lib/libfrr.la $(LIBCAP) $(UST_LIBS) -lnl-3 -lnl-route-3 -lpthread
+fpmsyncd_fpmsyncd_SOURCES = \
+    fpmsyncd/fpmsyncd.cpp \
+    fpmsyncd/fpmlink.cpp \
+    fpmsyncd/routesync.cpp \
+    fpmsyncd/swss/netdispatcher.cpp \
+    fpmsyncd/swss/ipaddress.cpp \
+    fpmsyncd/swss/ipprefix.cpp \
+    fpmsyncd/swss/macaddress.cpp \
+    fpmsyncd/swss/netlink.cpp \
+    fpmsyncd/swss/select.cpp \
+    fpmsyncd/swss/selectabletimer.cpp \
+    fpmsyncd/swss/tokenize.cpp \
+    fpmsyncd/swss/timestamp.cpp \
+    fpmsyncd/json.hpp \
+    #end 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
